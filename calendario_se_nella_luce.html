@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Il Sé nella Luce — Calendario Perpetuo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #B8974A;
+      --gold-light: #E8D5A3;
+      --gold-dark: #7A6230;
+      --ink: #1A1510;
+      --parchment: #F7F3EC;
+      --parchment-dark: #EDE6D8;
+    }
+
+    html, body {
+      min-height: 100%;
+      background: var(--parchment);
+      color: var(--ink);
+      font-family: 'Cormorant Garamond', serif;
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .cal-wrap {
+      width: 100%;
+      max-width: 480px;
+      position: relative;
+    }
+
+    .cal-wrap::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 80% 40% at 50% 0%, rgba(184,151,74,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 60% 30% at 50% 100%, rgba(184,151,74,0.05) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .cal-header {
+      text-align: center;
+      margin-bottom: 2rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .cal-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(20px, 5vw, 28px);
+      font-weight: 600;
+      letter-spacing: 0.15em;
+      color: var(--gold-dark);
+      text-transform: uppercase;
+    }
+
+    .cal-subtitle {
+      font-size: 14px;
+      font-style: italic;
+      color: #7A6E5F;
+      letter-spacing: 0.05em;
+      margin-top: 4px;
+    }
+
+    .ornament {
+      color: var(--gold);
+      font-size: 18px;
+      letter-spacing: 8px;
+      display: block;
+      margin: 6px 0;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 1.2rem 0;
+      position: relative;
+      z-index: 1;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 0.5px;
+      background: linear-gradient(to right, transparent, var(--gold), transparent);
+    }
+    .divider-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--gold);
+    }
+
+    .nav-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .nav-btn {
+      background: none;
+      border: 0.5px solid var(--gold);
+      color: var(--gold-dark);
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 20px;
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    .nav-btn:hover { background: var(--gold); color: var(--parchment); }
+
+    .month-label {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(16px, 4vw, 22px);
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: 0.1em;
+      min-width: 230px;
+      text-align: center;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      margin-bottom: 4px;
+      position: relative;
+      z-index: 1;
+    }
+    .wd {
+      text-align: center;
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--gold-dark);
+      padding: 4px 0;
+      text-transform: uppercase;
+    }
+    .wd.weekend { color: var(--gold); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 2px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .day-cell {
+      aspect-ratio: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border-radius: 4px;
+      position: relative;
+      transition: all 0.2s;
+      background: transparent;
+      border: none;
+      padding: 0;
+    }
+    .day-cell:hover .day-num { color: var(--gold); }
+    .day-cell:hover { background: rgba(184,151,74,0.06); }
+
+    .day-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(14px, 3vw, 19px);
+      font-weight: 300;
+      color: var(--ink);
+      line-height: 1;
+      transition: color 0.2s;
+    }
+
+    .day-cell.empty { cursor: default; }
+    .day-cell.empty:hover { background: transparent; }
+    .day-cell.empty .day-num { visibility: hidden; }
+
+    .day-cell.today .day-num {
+      color: var(--parchment);
+      position: relative;
+      z-index: 1;
+    }
+    .day-cell.today::before {
+      content: '';
+      position: absolute;
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: var(--gold-dark);
+    }
+
+    .day-cell.selected:not(.today) {
+      background: rgba(184,151,74,0.13);
+    }
+
+    .chapter-dot {
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: var(--gold);
+      margin-top: 2px;
+      opacity: 0.65;
+    }
+    .day-cell.empty .chapter-dot { visibility: hidden; }
+
+    .insight-panel {
+      margin-top: 1.8rem;
+      background: var(--parchment-dark);
+      border: 0.5px solid var(--gold-light);
+      border-radius: 8px;
+      padding: 1.5rem 1.8rem 1.5rem 2rem;
+      position: relative;
+      overflow: hidden;
+      min-height: 170px;
+      z-index: 1;
+    }
+    .insight-panel::before {
+      content: '';
+      position: absolute;
+      top: -20px; left: -20px;
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      border: 0.5px solid var(--gold-light);
+      opacity: 0.5;
+    }
+    .insight-panel::after {
+      content: '';
+      position: absolute;
+      bottom: -30px; right: -30px;
+      width: 130px; height: 130px;
+      border-radius: 50%;
+      border: 0.5px solid var(--gold-light);
+      opacity: 0.35;
+    }
+
+    .insight-chapter {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      position: relative; z-index: 1;
+    }
+
+    .insight-date {
+      font-size: 13px;
+      color: #9A8E7A;
+      font-style: italic;
+      margin-bottom: 12px;
+      position: relative; z-index: 1;
+    }
+
+    .insight-ornament {
+      font-size: 48px;
+      color: var(--gold-light);
+      line-height: 1;
+      position: absolute;
+      top: 6px; left: 12px;
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      z-index: 0;
+    }
+
+    .insight-text {
+      font-size: clamp(16px, 3vw, 20px);
+      font-weight: 300;
+      font-style: italic;
+      line-height: 1.65;
+      color: var(--ink);
+      position: relative;
+      z-index: 1;
+    }
+
+    .year-strip {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+      position: relative; z-index: 1;
+    }
+
+    .year-btn {
+      background: none;
+      border: 0.5px solid rgba(184,151,74,0.4);
+      color: var(--gold-dark);
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      padding: 4px 11px;
+      border-radius: 20px;
+      cursor: pointer;
+      letter-spacing: 0.05em;
+      transition: all 0.2s;
+    }
+    .year-btn:hover, .year-btn.active {
+      background: var(--gold-dark);
+      color: var(--parchment);
+      border-color: var(--gold-dark);
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 12px;
+      font-style: italic;
+      color: #9A8E7A;
+      letter-spacing: 0.05em;
+      margin-top: 1rem;
+      position: relative; z-index: 1;
+    }
+  </style>
+</head>
+<body>
+<div class="cal-wrap">
+
+  <div class="cal-header">
+    <div class="cal-title">Il Sé nella Luce</div>
+    <span class="ornament">· · ·</span>
+    <div class="cal-subtitle">Calendario perpetuo — in itinere</div>
+  </div>
+
+  <div class="divider"><div class="divider-dot"></div></div>
+
+  <div class="nav-row">
+    <button class="nav-btn" id="prevMonth" aria-label="Mese precedente">‹</button>
+    <div class="month-label" id="monthLabel"></div>
+    <button class="nav-btn" id="nextMonth" aria-label="Mese successivo">›</button>
+  </div>
+
+  <div class="weekdays">
+    <div class="wd">Lu</div>
+    <div class="wd">Ma</div>
+    <div class="wd">Me</div>
+    <div class="wd">Gi</div>
+    <div class="wd">Ve</div>
+    <div class="wd weekend">Sa</div>
+    <div class="wd weekend">Do</div>
+  </div>
+
+  <div class="grid" id="calGrid"></div>
+
+  <div class="insight-panel">
+    <div class="insight-ornament">"</div>
+    <div class="insight-chapter" id="insightChapter"></div>
+    <div class="insight-date" id="insightDate"></div>
+    <div class="insight-text" id="insightText"></div>
+  </div>
+
+  <div class="year-strip" id="yearStrip"></div>
+
+  <div class="divider" style="margin-top:2rem"><div class="divider-dot"></div></div>
+  <div class="footer-note">Pietro Annicchiarico · Grottaglie 2020–2026</div>
+
+</div>
+
+<script>
+  const MONTHS_IT = [
+    'Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno',
+    'Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'
+  ];
+
+  const INSIGHTS = [
+    { chapter: 'I · La Caduta', text: 'Ogni istante di vita è una fortuna e gioia.' },
+    { chapter: 'I · La Caduta', text: 'La crisi è sacra, la guarigione è santa. Abbi fede.' },
+    { chapter: 'I · La Caduta', text: 'Mi stupisco al mattino. Il cuore ha retto. Batte ancora.' },
+    { chapter: 'I · La Caduta', text: 'La vita è un paradosso: è nel momento più buio che si vede una forte luce.' },
+    { chapter: 'II · Il Vuoto e la Fonte', text: 'A cosa può appigliarsi il dolore, il rancore, la rabbia se la casa è vuota?' },
+    { chapter: 'II · Il Vuoto e la Fonte', text: "L'Opera consiste nel togliere e sgombrare, fare spazio alla meraviglia." },
+    { chapter: 'II · Il Vuoto e la Fonte', text: "Frena la mente, avvicinati un po'. Sei nell'unico posto possibile: la dimora." },
+    { chapter: 'II · Il Vuoto e la Fonte', text: 'Nella fonte interiore, luminosa e silenziosa, abbonda ogni ricchezza.' },
+    { chapter: 'III · Il Perdono', text: 'Applica un perdono circolare, totale, sferico, che comprenda ogni dimensione.' },
+    { chapter: 'III · Il Perdono', text: "Il perdonare l'altro è il dono più grande che puoi fare a te stesso." },
+    { chapter: 'III · Il Perdono', text: "L'altro, soprattutto il nemico, mi ha donato la capacità di amare incondizionatamente." },
+    { chapter: 'III · Il Perdono', text: 'Per farmi un regalo perdono e mi perdono.' },
+    { chapter: 'IV · La Mente e l\'Ego', text: "Vinci la mente, sconfiggi l'ego e il nemico smetterà di esistere." },
+    { chapter: 'IV · La Mente e l\'Ego', text: 'Il passato non conta, il futuro non esiste e nel presente bisogna tenere a bada l\'ego.' },
+    { chapter: 'IV · La Mente e l\'Ego', text: 'Quando sei in ansia, fermati, respira, ascolta il respiro. Resta nel presente.' },
+    { chapter: 'IV · La Mente e l\'Ego', text: 'La pace attrae e vince.' },
+    { chapter: 'V · Gli Errori Maestri', text: 'Gli errori sono i miei maestri. E non possono essere trasmessi.' },
+    { chapter: 'V · Gli Errori Maestri', text: 'Ogni persona che incontro mi insegna qualcosa.' },
+    { chapter: 'V · Gli Errori Maestri', text: 'Il raggiungimento della pace è il solitario attraversamento del proprio inferno.' },
+    { chapter: 'V · Gli Errori Maestri', text: 'Accettare il disegno compiuto equivale a essere totalmente realizzati e responsabili.' },
+    { chapter: 'VI · La Presenza e il Tempo', text: 'Importante è la presenza. Il qui e ora. L\'unica cosa che conta.' },
+    { chapter: 'VI · La Presenza e il Tempo', text: 'Ogni momento è gioia. Il presente è il mio momento magico.' },
+    { chapter: 'VI · La Presenza e il Tempo', text: 'Puoi vivere il presente in ogni luogo e in quel presente amare.' },
+    { chapter: 'VI · La Presenza e il Tempo', text: 'Mi accorgo di essere tornato finalmente dove sono nato. In me. A casa.' },
+    { chapter: "VII · L'Amore e le Relazioni", text: "Le anime s'incontrano. Gli ego si scontrano." },
+    { chapter: "VII · L'Amore e le Relazioni", text: "L'altro è il nostro specchio fedele: ha bisogno di essere amato per quello che è." },
+    { chapter: "VII · L'Amore e le Relazioni", text: "L'eredità che lascio sta in ciò e in chi ho amato." },
+    { chapter: "VII · L'Amore e le Relazioni", text: 'Da solo mi sento perfetto. Poi incontro l\'altro e capisco che sono appena a metà strada.' },
+    { chapter: 'VIII · La Parola e il Silenzio', text: 'Ho imparato la lingua più preziosa: il silenzio.' },
+    { chapter: 'VIII · La Parola e il Silenzio', text: 'Il più grande dono è il silenzio. O le parole che non feriscono.' },
+    { chapter: 'VIII · La Parola e il Silenzio', text: 'Non si incide nel mondo ostentando la sensibilità. Essere sempre gentili è la via.' },
+    { chapter: 'IX · La Luce', text: "Vivo ogni istante come se fosse l'ultimo, per questo non ho bisogno di sapere quando morirò." },
+    { chapter: 'IX · La Luce', text: 'Non contano i titoli. Conta solo la capacità di amare. Tutto il resto è inutile.' },
+    { chapter: 'IX · La Luce', text: 'Io sono in pace. Spero che possa esserlo anche tu.' },
+    { chapter: 'IX · La Luce', text: 'Del mio tempo salvo quando ho amato più di quando sono stato amato.' },
+  ];
+
+  const today = new Date();
+  let curYear = today.getFullYear();
+  let curMonth = today.getMonth();
+  let selDay = today.getDate();
+  let selMonth = today.getMonth();
+  let selYear = today.getFullYear();
+
+  function getInsight(day, month, year) {
+    const n = Math.abs((day * 7 + month * 31 + (year % 100) * 13)) % INSIGHTS.length;
+    return INSIGHTS[n];
+  }
+
+  function formatDateIT(day, month, year) {
+    return day + ' ' + MONTHS_IT[month] + ' ' + year;
+  }
+
+  function render() {
+    const grid = document.getElementById('calGrid');
+    document.getElementById('monthLabel').textContent = MONTHS_IT[curMonth] + ' ' + curYear;
+
+    const firstDow = new Date(curYear, curMonth, 1).getDay();
+    const offset = (firstDow === 0) ? 6 : firstDow - 1;
+    const daysInMonth = new Date(curYear, curMonth + 1, 0).getDate();
+
+    grid.innerHTML = '';
+
+    for (let i = 0; i < offset; i++) {
+      const e = document.createElement('div');
+      e.className = 'day-cell empty';
+      e.innerHTML = '<span class="day-num">0</span><span class="chapter-dot"></span>';
+      grid.appendChild(e);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = document.createElement('div');
+      cell.className = 'day-cell';
+      const isToday = d === today.getDate() && curMonth === today.getMonth() && curYear === today.getFullYear();
+      const isSel = d === selDay && curMonth === selMonth && curYear === selYear;
+      if (isToday) cell.classList.add('today');
+      if (isSel && !isToday) cell.classList.add('selected');
+      cell.innerHTML = '<span class="day-num">' + d + '</span><span class="chapter-dot"></span>';
+      cell.addEventListener('click', (function(dd) {
+        return function() {
+          selDay = dd; selMonth = curMonth; selYear = curYear;
+          updateInsight(dd, curMonth, curYear);
+          render();
+        };
+      })(d));
+      grid.appendChild(cell);
+    }
+
+    updateInsight(selDay, selMonth, selYear);
+  }
+
+  function updateInsight(d, m, y) {
+    const ins = getInsight(d, m, y);
+    document.getElementById('insightChapter').textContent = ins.chapter;
+    document.getElementById('insightDate').textContent = formatDateIT(d, m, y);
+    document.getElementById('insightText').textContent = ins.text;
+  }
+
+  function buildYearStrip() {
+    const strip = document.getElementById('yearStrip');
+    strip.innerHTML = '';
+    const startY = today.getFullYear() - 2;
+    for (let y = startY; y <= startY + 8; y++) {
+      (function(yr) {
+        const btn = document.createElement('button');
+        btn.className = 'year-btn' + (yr === curYear ? ' active' : '');
+        btn.textContent = yr;
+        btn.addEventListener('click', function() {
+          curYear = yr;
+          document.querySelectorAll('.year-btn').forEach(function(b) { b.classList.remove('active'); });
+          btn.classList.add('active');
+          render();
+        });
+        strip.appendChild(btn);
+      })(y);
+    }
+  }
+
+  document.getElementById('prevMonth').addEventListener('click', function() {
+    curMonth--;
+    if (curMonth < 0) { curMonth = 11; curYear--; }
+    buildYearStrip();
+    render();
+  });
+
+  document.getElementById('nextMonth').addEventListener('click', function() {
+    curMonth++;
+    if (curMonth > 11) { curMonth = 0; curYear++; }
+    buildYearStrip();
+    render();
+  });
+
+  buildYearStrip();
+  render();
+</script>
+</body>
+</html>
